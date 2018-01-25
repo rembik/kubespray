@@ -1,4 +1,8 @@
 ---
+- name: "Traefik | Label 'edge-router' nodes"
+  command: "{{ bin_dir }}/kubectl label node {{ item }} role=edge-router"
+  with_items: "{{ traefik_edge_router_nodes }}"
+
 - name: "Traefik | Write traefik config"
   template:
     src: traefik-configmap.yml.j2

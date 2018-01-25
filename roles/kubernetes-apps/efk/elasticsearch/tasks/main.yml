@@ -22,7 +22,7 @@
   register: es_statefulset_manifest
 
 - name: "ElasticSearch | Create ES statefulset"
-  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-statfulset.yaml -n {{ system_namespace }}"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-statefulset.yaml -n {{ system_namespace }}"
   run_once: true
   when: es_statefulset_manifest.changed
 

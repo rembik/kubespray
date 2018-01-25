@@ -1,1 +1,4 @@
 ---
+# default edge router is the first node who isn't a master 
+traefik_edge_router_nodes:
+  - "{{ hostvars[groups['kube-node'][1]['ansible_nodename']] }}"
