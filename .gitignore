@@ -99,4 +99,4 @@ inventory/inventory.cfg
 
 # vault
 .vault
-**/inventory/vault
+inventory/**/vault
