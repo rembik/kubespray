@@ -300,6 +300,12 @@ downloads:
     repo: "{{ elasticsearch_image_repo }}"
     tag: "{{ elasticsearch_image_tag }}"
     sha256: "{{ elasticsearch_digest_checksum|default(None) }}"
+  elasticsearch_curator:
+    enabled: "{{ efk_enabled }}"
+    container: true
+    repo: "{{ elasticsearch_curator_image_repo }}"
+    tag: "{{ elasticsearch_curator_image_tag }}"
+    sha256: "{{ elasticsearch_curator_digest_checksum|default(None) }}"
   fluentd:
     enabled: "{{ efk_enabled }}"
     container: true

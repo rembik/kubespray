@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-conf
+  namespace: "{{ system_namespace }}"
+data:
+  traefik.toml: |
+    # traefik.toml
+    defaultEntryPoints = ["http","https"]
+    [entryPoints]
+      [entryPoints.http]
+      address = ":80"
+      #[entryPoints.http.redirect]
+      #entryPoint = "https"
+      #[entryPoints.http.auth.basic]   # if you need login/pass to access service
+      #users = ["test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"]   # user=test, pass=test
+      #[entryPoints.https.auth.basic]
+      #users = ["test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"]   # user=test, pass=test
+      [entryPoints.https]
+      address = ":443"
+      [entryPoints.https.tls]
+    [acme]
+    email = "grp-mgadmin@msx.tu-dresden.de"
+    storageFile = "/etc/traefik/acme/acme.json"
+    entryPoint = "https"
+    onDemand = false
+    onHostRule = true
+    caServer = "https://acme-staging.api.letsencrypt.org/directory"   # comment this line for production
+    [[acme.domains]]
+    main = "mediadesign-tud.de"

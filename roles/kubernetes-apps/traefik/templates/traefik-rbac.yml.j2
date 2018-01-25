@@ -1,0 +1,53 @@
+---
+# https://raw.githubusercontent.com/containous/traefik/v1.5.0/examples/k8s/traefik-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-ingress-controller
+  namespace: "{{ system_namespace }}"
+  labels:
+    k8s-app: traefik-ingress-lb
+    kubernetes.io/cluster-service: "true"
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: traefik-ingress-controller
+  labels:
+    k8s-app: traefik-ingress-lb
+    kubernetes.io/cluster-service: "true"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: traefik-ingress-controller
+  labels:
+    k8s-app: traefik-ingress-lb
+    kubernetes.io/cluster-service: "true"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-ingress-controller
+subjects:
+- kind: ServiceAccount
+  name: traefik-ingress-controller
+  namespace: "{{ system_namespace }}"

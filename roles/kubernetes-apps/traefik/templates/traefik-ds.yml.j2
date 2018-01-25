@@ -1,0 +1,56 @@
+---
+# https://raw.githubusercontent.com/containous/traefik/v1.5.0/examples/k8s/traefik-ds.yaml
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: traefik-ingress-controller
+  namespace: "{{ system_namespace }}"
+  labels:
+    k8s-app: traefik-ingress-lb
+    kubernetes.io/cluster-service: "true"
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-ingress-lb
+        name: traefik-ingress-lb
+    spec:
+{% if rbac_enabled %}
+      serviceAccountName: traefik-ingress-controller
+{% endif %}
+      terminationGracePeriodSeconds: 60
+      hostNetwork: true
+      containers:
+      - image: traefik
+        name: traefik-ingress-lb
+        ports:
+        - name: http
+          containerPort: 80
+          hostPort: 80
+        - name: https
+          containerPort: 443
+          hostPort: 443
+        - name: admin
+          containerPort: 8080
+        securityContext:
+          privileged: true
+        args:
+        - -d
+        - --api
+        - --kubernetes
+        - --web
+        - --configfile=/config/traefik.toml
+      volumeMounts:
+        - name: config-volume
+          mountPath: /etc/traefik/conf
+        - name: acme
+          mountPath: /etc/traefik/acme 
+      volumes:
+        - name: config-volume
+          configMap:
+            name: traefik-conf
+        - name: acme
+          hostPath:
+            path: /srv/kubernetes/traefik/acme
+    nodeSelector:
+      role: edge-router

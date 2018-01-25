@@ -149,6 +149,7 @@ k8s_image_pull_policy: IfNotPresent
 # Addons which can be enabled
 efk_enabled: false
 helm_enabled: false
+traefik_enabled: false
 istio_enabled: false
 enable_network_policy: false
 local_volumes_enabled: false

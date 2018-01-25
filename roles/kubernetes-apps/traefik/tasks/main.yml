@@ -1,0 +1,49 @@
+---
+- name: "Traefik | Write traefik config"
+  template:
+    src: traefik-configmap.yml.j2
+    dest: "{{ kube_config_dir }}/traefik-configmap.yaml"
+  register: traefik_configmap
+
+- name: "Traefik | Create traefik config"
+  command: "{{bin_dir}}/kubectl apply -f {{ kube_config_dir }}/traefik-configmap.yaml"
+  run_once: true
+  when: traefik_configmap.changed
+
+- name: "Traefik | Write traefik manifests (RBAC)"
+  template:
+    src: "{{ item }}.yml.j2"
+    dest: "{{ kube_config_dir }}/{{ item }}.yaml"
+  with_items:
+    - "traefik-rbac"
+  run_once: true
+  when: rbac_enabled
+
+- name: "Traefik | Create traefik Serviceaccount and Clusterrolebinding (RBAC)"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/{{ item }}.yaml -n {{ system_namespace }}"
+  with_items:
+    - "traefik-rbac"
+  run_once: true
+  when: rbac_enabled
+
+- name: "Traefik | Write traefik daemonset"
+  template:
+    src: traefik-ds.yml.j2
+    dest: "{{ kube_config_dir }}/traefik-ds.yaml"
+  register: traefik_ds_manifest
+
+- name: "traefik | Create traefik daemonset"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/traefik-ds.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: traefik_ds_manifest.changed
+
+- name: "Traefik | Write traefik service"
+  template:
+    src: traefik-service.yml.j2
+    dest: "{{ kube_config_dir }}/traefik-service.yaml"
+  register: traefik_service_manifest
+
+- name: "traefik | Create traefik service"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/traefik-service.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: traefik_service_manifest.changed

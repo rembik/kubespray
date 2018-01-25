@@ -1,0 +1,17 @@
+---
+# https://raw.githubusercontent.com/containous/traefik/v1.5.0/examples/k8s/traefik-ds.yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: traefik-ingress-service
+  namespace: "{{ system_namespace }}"
+  labels:
+    k8s-app: traefik-ingress-lb
+    kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    k8s-app: traefik-ingress-lb
+  ports:
+    - protocol: TCP
+      port: 8080
+      name: admin

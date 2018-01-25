@@ -1,11 +1,11 @@
 ---
-- name: "Fluentd | copy config file"
+- name: "Fluentd | Write fluentd config"
   template:
     src: fluentd-configmap.yml.j2
     dest: "{{ kube_config_dir }}/fluentd-configmap.yaml"
   register: fluentd_configmap
 
-- name: "Fluentd | create configMap"
+- name: "Fluentd | Create fluentd config"
   command: "{{bin_dir}}/kubectl apply -f {{ kube_config_dir }}/fluentd-configmap.yaml"
   run_once: true
   when: fluentd_configmap.changed

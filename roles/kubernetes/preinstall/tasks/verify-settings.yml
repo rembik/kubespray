@@ -41,6 +41,7 @@
     - { name: download_always_pull, value: "{{ download_always_pull }}" }
     - { name: efk_enabled, value: "{{ efk_enabled }}" }
     - { name: helm_enabled, value: "{{ helm_enabled }}" }
+    - { name: traefik_enabled, value: "{{ traefik_enabled }}" }
     - { name: openstack_lbaas_enabled, value: "{{ openstack_lbaas_enabled }}" }
   ignore_errors: "{{ ignore_assert_errors }}"
 
