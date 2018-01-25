@@ -1,10 +1,12 @@
-apiVersion: v1
 kind: ConfigMap
+apiVersion: v1
 metadata:
-  name: fluentd-config
+  name: fluentd-es-config-v0.1.1
   namespace: "{{ system_namespace }}"
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
 data:
-  {{ fluentd_config_file }}: |
+  containers.input.conf: |-
     # This configuration file for Fluentd / td-agent is used
     # to watch changes to Docker log files. The kubelet creates symlinks that
     # capture the pod name, namespace, container name & Docker container ID
@@ -18,7 +20,6 @@ data:
     # See https://github.com/uken/fluent-plugin-elasticsearch &
     # https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter for
     # more information about the plugins.
-    # Maintainer: Jimmi Dyson <jimmidyson@gmail.com>
     #
     # Example
     # =======
@@ -99,30 +100,29 @@ data:
     # This makes it easier for users to search for logs by pod name or by
     # the name of the Kubernetes container regardless of how many times the
     # Kubernetes pod has been restarted (resulting in a several Docker container IDs).
-    #
-    # TODO: Propagate the labels associated with a container along with its logs
-    # so users can query logs using labels as well as or instead of the pod name
-    # and container name. This is simply done via configuration of the Kubernetes
-    # fluentd plugin but requires secrets to be enabled in the fluent pod. This is a
-    # problem yet to be solved as secrets are not usable in static pods which the fluentd
-    # pod must be until a per-node controller is available in Kubernetes.
-    # Prevent fluentd from handling records containing its own logs. Otherwise
-    # it can lead to an infinite loop, when error in sending one message generates
-    # another message which also fails to be sent and so on.
-    <match fluent.**>
-      type null
-    </match>
-    # Example:
+    # Json Log Example:
     # {"log":"[info:2016-02-16T16:04:05.930-08:00] Some log text here\n","stream":"stdout","time":"2016-02-17T00:04:05.931087621Z"}
+    # CRI Log Example:
+    # 2016-02-17T00:04:05.931087621Z stdout F [info:2016-02-16T16:04:05.930-08:00] Some log text here
     <source>
       type tail
       path /var/log/containers/*.log
       pos_file /var/log/es-containers.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%NZ
       tag kubernetes.*
-      format json
       read_from_head true
+      format multi_format
+      <pattern>
+        format json
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </pattern>
+      <pattern>
+        format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+        time_format %Y-%m-%dT%H:%M:%S.%N%:z
+      </pattern>
     </source>
+  system.input.conf: |-
     # Example:
     # 2015-12-21 23:17:22,066 [salt.state       ][INFO    ] Completed state [net.ipv4.ip_forward] at time 23:17:22.066081
     <source>
@@ -270,59 +270,83 @@ data:
       pos_file /var/log/es-cluster-autoscaler.log.pos
       tag cluster-autoscaler
     </source>
+    # Logs from systemd-journal for interesting services.
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "docker.service" }]
+      pos_file /var/log/gcp-journald-docker.pos
+      read_from_head true
+      tag docker
+    </source>
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+      pos_file /var/log/gcp-journald-kubelet.pos
+      read_from_head true
+      tag kubelet
+    </source>
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "node-problem-detector.service" }]
+      pos_file /var/log/gcp-journald-node-problem-detector.pos
+      read_from_head true
+      tag node-problem-detector
+    </source>
+  forward.input.conf: |-
+    # Takes the messages sent over TCP
+    <source>
+      type forward
+    </source>
+  monitoring.conf: |-
+    # Prometheus Exporter Plugin
+    # input plugin that exports metrics
+    <source>
+      @type prometheus
+    </source>
+    <source>
+      @type monitor_agent
+    </source>
+    # input plugin that collects metrics from MonitorAgent
+    <source>
+      @type prometheus_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+    # input plugin that collects metrics for output plugin
+    <source>
+      @type prometheus_output_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+    # input plugin that collects metrics for in_tail plugin
+    <source>
+      @type prometheus_tail_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+  output.conf: |-
+    # Enriches records with Kubernetes metadata
     <filter kubernetes.**>
       type kubernetes_metadata
     </filter>
-    ## Prometheus Exporter Plugin
-    ## input plugin that exports metrics
-    #<source>
-    #  type prometheus
-    #</source>
-    #<source>
-    #  type monitor_agent
-    #</source>
-    #<source>
-    #  type forward
-    #</source>
-    ## input plugin that collects metrics from MonitorAgent
-    #<source>
-    #  @type prometheus_monitor
-    #  <labels>
-    #    host ${hostname}
-    #  </labels>
-    #</source>
-    ## input plugin that collects metrics for output plugin
-    #<source>
-    #  @type prometheus_output_monitor
-    #  <labels>
-    #    host ${hostname}
-    #  </labels>
-    #</source>
-    ## input plugin that collects metrics for in_tail plugin
-    #<source>
-    #  @type prometheus_tail_monitor
-    #  <labels>
-    #    host ${hostname}
-    #  </labels>
-    #</source>
     <match **>
        type elasticsearch
-       user "#{ENV['FLUENT_ELASTICSEARCH_USER']}"
-       password "#{ENV['FLUENT_ELASTICSEARCH_PASSWORD']}"
        log_level info
        include_tag_key true
        host elasticsearch-logging
        port 9200
        logstash_format true
-       # Set the chunk limit the same as for fluentd-gcp.
+       # Set the chunk limits.
        buffer_chunk_limit 2M
-       # Cap buffer memory usage to 2MiB/chunk * 32 chunks = 64 MiB
-       buffer_queue_limit 32
+       buffer_queue_limit 8
        flush_interval 5s
        # Never wait longer than 5 minutes between retries.
        max_retry_wait 30
        # Disable the limit on the number of retries (retry forever).
        disable_retry_limit
        # Use multiple threads for processing.
-       num_threads 8
+       num_threads 2
     </match>

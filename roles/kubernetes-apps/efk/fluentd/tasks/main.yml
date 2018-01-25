@@ -1,14 +1,30 @@
 ---
 - name: "Fluentd | copy config file"
   template:
-    src: fluentd-config.yml.j2
-    dest: "{{ kube_config_dir }}/fluentd-config.yaml"
-  register: fluentd_config
+    src: fluentd-configmap.yml.j2
+    dest: "{{ kube_config_dir }}/fluentd-configmap.yaml"
+  register: fluentd_configmap
 
 - name: "Fluentd | create configMap"
-  command: "{{bin_dir}}/kubectl apply -f {{ kube_config_dir }}/fluentd-config.yaml"
+  command: "{{bin_dir}}/kubectl apply -f {{ kube_config_dir }}/fluentd-configmap.yaml"
   run_once: true
-  when: fluentd_config.changed
+  when: fluentd_configmap.changed
+
+- name: "Fluentd | Write fluentd manifests (RBAC)"
+  template:
+    src: "{{ item }}.yml.j2"
+    dest: "{{ kube_config_dir }}/{{ item }}.yaml"
+  with_items:
+    - "fluentd-rbac"
+  run_once: true
+  when: rbac_enabled
+
+- name: "Fluentd | Create fluentd Serviceaccount and Clusterrolebinding (RBAC)"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/{{ item }}.yaml -n {{ system_namespace }}"
+  with_items:
+    - "fluentd-rbac"
+  run_once: true
+  when: rbac_enabled
 
 - name: "Fluentd | Write fluentd daemonset"
   template:

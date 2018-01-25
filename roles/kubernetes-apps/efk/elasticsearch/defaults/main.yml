@@ -4,3 +4,4 @@ elasticsearch_mem_limit: 0M
 elasticsearch_cpu_requests: 100m
 elasticsearch_mem_requests: 0M
 elasticsearch_service_port: 9200
+elasticsearch_delete_indices_unit_count: 7

@@ -1,32 +1,30 @@
 ---
-- name: "ElasticSearch | Write efk manifests (RBAC)"
+- name: "ElasticSearch | Write ES manifests (RBAC)"
   template:
-    src: "{{ item }}"
-    dest: "{{ kube_config_dir }}/{{ item }}"
+    src: "{{ item }}.yml.j2"
+    dest: "{{ kube_config_dir }}/{{ item }}.yaml"
   with_items:
-    - "efk-sa.yml"
-    - "efk-clusterrolebinding.yml"
+    - "elasticsearch-rbac"
   run_once: true
   when: rbac_enabled
 
-- name: "ElasticSearch | Create Serviceaccount and Clusterrolebinding (RBAC)"
-  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/{{ item }} -n {{ system_namespace }}"
+- name: "ElasticSearch | Create ES Serviceaccount and Clusterrolebinding (RBAC)"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/{{ item }}.yaml -n {{ system_namespace }}"
   with_items:
-    - "efk-sa.yml"
-    - "efk-clusterrolebinding.yml"
+    - "elasticsearch-rbac"
   run_once: true
   when: rbac_enabled
 
-- name: "ElasticSearch | Write ES deployment"
+- name: "ElasticSearch | Write ES statefulset"
   template:
-    src: elasticsearch-deployment.yml.j2
-    dest: "{{ kube_config_dir }}/elasticsearch-deployment.yaml"
-  register: es_deployment_manifest
+    src: elasticsearch-statefulset.yml.j2
+    dest: "{{ kube_config_dir }}/elasticsearch-statefulset.yaml"
+  register: es_statefulset_manifest
 
-- name: "ElasticSearch | Create ES deployment"
-  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-deployment.yaml -n {{ system_namespace }}"
+- name: "ElasticSearch | Create ES statefulset"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-statfulset.yaml -n {{ system_namespace }}"
   run_once: true
-  when: es_deployment_manifest.changed
+  when: es_statefulset_manifest.changed
 
 - name: "ElasticSearch | Write ES service "
   template:
@@ -38,3 +36,26 @@
   command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-service.yaml -n {{ system_namespace }}"
   run_once: true
   when: es_service_manifest.changed
+
+- name: "ElasticSearch | Write ES curator config"
+  template:
+    src: elasticsearch-curator-configmap.yml.j2
+    dest: "{{ kube_config_dir }}/elasticsearch-curator-configmap.yaml"
+  register: es_curator_config_manifest
+
+- name: "ElasticSearch | Create ES curator config"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-curator-configmap.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: es_curator_config_manifest.changed
+
+- name: "ElasticSearch | Write ES curator cronjob"
+  template:
+    src: elasticsearch-curator-configmap.yml.j2
+    dest: "{{ kube_config_dir }}/elasticsearch-curator.yaml"
+  register: es_curator_manifest
+
+- name: "ElasticSearch | Create ES curator cronjob"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/elasticsearch-curator.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: es_curator_manifest.changed
+

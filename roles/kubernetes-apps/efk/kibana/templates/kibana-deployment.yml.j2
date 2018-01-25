@@ -1,13 +1,14 @@
 ---
-# https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.2/cluster/addons/fluentd-kibana/kibana-controller.yaml
-apiVersion: extensions/v1beta1
+# https://raw.githubusercontent.com/kubernetes/kubernetes/v1.9.2/cluster/addons/fluentd-elasticsearch/kibana-deployment.yaml
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: kibana-logging
-  namespace: "{{ system_namespace  }}"
+  namespace: "{{ system_namespace }}"
   labels:
     k8s-app: kibana-logging
     kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
 spec:
   replicas: 1
   selector:
@@ -22,7 +23,7 @@ spec:
       - name: kibana-logging
         image: "{{ kibana_image_repo }}:{{ kibana_image_tag }}"
         resources:
-          # keep request = limit to keep this container in guaranteed class
+          # need more cpu upon initialization, therefore burstable class
           limits:
             cpu: {{ kibana_cpu_limit }}
 {% if kibana_mem_limit is defined and kibana_mem_limit != "0M" %}
@@ -34,17 +35,15 @@ spec:
             mem: {{ kibana_mem_requests }}
 {% endif %}
         env:
-          - name: "ELASTICSEARCH_URL"
+          - name: ELASTICSEARCH_URL
             value: "http://elasticsearch-logging:{{ elasticsearch_service_port }}"
-{% if kibana_base_url is defined and kibana_base_url != "" %}
-          - name: "KIBANA_BASE_URL"
+          - name: SERVER_BASEPATH
             value: "{{ kibana_base_url }}"
-{% endif %}
+          - name: XPACK_MONITORING_ENABLED
+            value: "false"
+          - name: XPACK_SECURITY_ENABLED
+            value: "false"
         ports:
         - containerPort: 5601
           name: ui
           protocol: TCP
-{% if rbac_enabled %}
-      serviceAccountName: efk 
-{% endif %}
-

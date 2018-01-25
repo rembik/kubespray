@@ -1,0 +1,33 @@
+---
+# https://raw.githubusercontent.com/pires/kubernetes-elasticsearch-cluster/6.1.1/es-curator_v1beta1.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: elasticsearch-curator
+  namespace: "{{ system_namespace }}"
+  labels:
+    k8s-app: elasticsearch-curator
+spec:
+  schedule: 1 0 * * *
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            k8s-app: elasticsearch-curator
+        spec:
+          containers:
+          - name: elasticsearch-curator
+            image: "{{ elasticsearch_curator_image_repo }}:{{ elasticsearch_curator_image_tag }}"
+            args:
+            - --config
+            - /etc/config/config.yml
+            - /etc/config/action_file.yml
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/config
+          volumes:
+            - name: config-volume
+              configMap:
+                name: elasticsearch-curator-config
+          restartPolicy: OnFailure
