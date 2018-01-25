@@ -1,0 +1,4 @@
+
+# weave's network password for encryption
+# if null then no network encryption
+vault_weave_password: EnterPassword
