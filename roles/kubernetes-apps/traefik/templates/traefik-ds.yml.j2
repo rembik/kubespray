@@ -23,6 +23,13 @@ spec:
       containers:
       - image: traefik
         name: traefik-ingress-lb
+        resources:
+          limits:
+            cpu: {{ traefik_cpu_limit }}
+            memory: {{ traefik_mem_limit }}
+          requests:
+            cpu:  {{ traefik_cpu_requests }}
+            memory: {{ traefik_mem_requests }}
         ports:
         - name: http
           containerPort: 80
