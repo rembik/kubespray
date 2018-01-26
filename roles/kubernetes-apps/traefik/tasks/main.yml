@@ -1,7 +1,10 @@
 ---
 - name: "Traefik | Label 'edge-router' nodes"
+  vars:
+    traefik_default_edge_router_node:
+      -  "{{ hostvars[groups['kube-node'][1]]['ansible_nodename'] }}"
   command: "{{ bin_dir }}/kubectl label node {{ item }} role=edge-router"
-  with_items: "{{ traefik_edge_router_nodes }}"
+  with_items: "{{ traefik_edge_router_nodes|default(traefik_default_edge_router_node)}}"
 
 - name: "Traefik | Write traefik config"
   template:
