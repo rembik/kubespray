@@ -1,4 +1,6 @@
 ---
-# default edge router is the first node who isn't a master 
-traefik_edge_router_nodes:
-  - "{{ hostvars[groups['kube-node'][1]]['ansible_hostname'] }}"
+# default edge router is the first node who isn't a master (second kube-node)
+# uncomment traefik_edge_router_nodes list to deploy other nodes as edge-router (specified by nodename)
+#traefik_edge_router_nodes:
+#  - "node3"
+#  - "node4"
