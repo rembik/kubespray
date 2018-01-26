@@ -40,17 +40,17 @@ spec:
         - --kubernetes
         - --web
         - --configfile=/config/traefik.toml
-      volumeMounts:
+        volumeMounts:
         - name: config-volume
           mountPath: /etc/traefik/conf
         - name: acme
           mountPath: /etc/traefik/acme 
       volumes:
-        - name: config-volume
-          configMap:
-            name: traefik-conf
-        - name: acme
-          hostPath:
-            path: /srv/kubernetes/traefik/acme
+      - name: config-volume
+        configMap:
+          name: traefik-conf
+      - name: acme
+        hostPath:
+          path: /srv/kubernetes/traefik/acme
       nodeSelector:
         role: edge-router
