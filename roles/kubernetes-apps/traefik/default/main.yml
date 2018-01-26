@@ -8,7 +8,7 @@ traefik_mem_requests: 30Mi
 #traefik_edge_router_nodes:
 #  - "node3"
 #  - "node4"
-traefik_ingress_controller_domain: "traefik.{{ traefik_public_cluster_domain|default(cluster_name) }}"
-traefik_kubernetes_dashboard_domain: "k8s.{{ traefik_public_cluster_domain|default(cluster_name) }}"
-traefik_kibana_logging_domain: "kibana.{{ traefik_public_cluster_domain|default(cluster_name) }}"
+traefik_ingress_controller_subdomain: "traefik"
+traefik_kubernetes_dashboard_subdomain: "k8s"
+traefik_kibana_logging_subdomain: "kibana"
 traefik_kibana_logging_port: 5601
