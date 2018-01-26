@@ -1,6 +1,14 @@
 ---
+traefik_cpu_limit: 100m
+traefik_mem_limit: 20Mi
+traefik_cpu_requests: 200m
+traefik_mem_requests: 30Mi
 # default edge router is the first node who isn't a master (second kube-node)
 # uncomment traefik_edge_router_nodes list to deploy other nodes as edge-router (specified by nodename)
 #traefik_edge_router_nodes:
 #  - "node3"
 #  - "node4"
+traefik_ingress_controller_domain: "traefik.{{ traefik_public_cluster_domain|default(cluster_name) }}"
+traefik_kubernetes_dashboard_domain: "k8s.{{ traefik_public_cluster_domain|default(cluster_name) }}"
+traefik_kibana_logging_domain: "kibana.{{ traefik_public_cluster_domain|default(cluster_name) }}"
+traefik_kibana_logging_port: 5601

@@ -1,0 +1,16 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana-logging
+  namespace: "{{ system_namespace }}"
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  - host: "{{ kibana_logging_domain }}"
+    http:
+      paths:
+      - backend:
+          serviceName: kibana-logging
+          servicePort: "{{ traefik_kibana_logging_port }}"

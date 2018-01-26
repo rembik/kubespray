@@ -54,3 +54,36 @@
   command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/traefik-service.yaml -n {{ system_namespace }}"
   run_once: true
   when: traefik_service_manifest.changed
+
+- name: "traefik | Write traefik ingress"
+  template:
+    src: traefik-ingress.yml.j2
+    dest: "{{ kube_config_dir }}/traefik-ingress.yaml"
+  register: traefik_ingress_manifest
+
+- name: "traefik | Create traefik ingress"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/traefik-ingress.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: traefik_ingress_manifest.changed
+
+- name: "traefik | Write Kubernetes dashboard ingress"
+  template:
+    src: kubernetes-dashboard-ingress.yml.j2
+    dest: "{{ kube_config_dir }}/kubernetes-dashboard-ingress.yaml"
+  register: kubernetes_dashboard_ingress_manifest
+
+- name: "traefik | Create Kubernetes dashboard ingress"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/kubernetes-dashboard-ingress.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: kubernetes_dashboard_ingress_manifest.changed and dashboard_enabled
+
+- name: "traefik | Write Kibana ingress"
+  template:
+    src: kibana-ingress.yml.j2
+    dest: "{{ kube_config_dir }}/kibana-ingress.yaml"
+  register: kibana_ingress_manifest
+
+- name: "traefik | Create Kibana ingress"
+  command: "{{ bin_dir }}/kubectl apply -f {{ kube_config_dir }}/kibana-ingress.yaml -n {{ system_namespace }}"
+  run_once: true
+  when: kibana_ingress_manifest.changed and efk_enabled

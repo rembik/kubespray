@@ -43,13 +43,13 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /etc/traefik/conf
-        - name: acme
+        - name: acme-volume
           mountPath: /etc/traefik/acme 
       volumes:
       - name: config-volume
         configMap:
-          name: traefik-conf
-      - name: acme
+          name: acme-conf
+      - name: acme-volume
         hostPath:
           path: /srv/kubernetes/traefik/acme
       nodeSelector:
