@@ -49,9 +49,9 @@ spec:
         - --configfile=/config/traefik.toml
         volumeMounts:
         - name: config-volume
-          mountPath: /etc/traefik/conf
+          mountPath: /config
         - name: acme-volume
-          mountPath: /etc/traefik/acme 
+          mountPath: /acme
       volumes:
       - name: config-volume
         configMap:
