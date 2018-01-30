@@ -1,8 +1,8 @@
 ---
-traefik_cpu_limit: 100m
-traefik_mem_limit: 20Mi
-traefik_cpu_requests: 200m
-traefik_mem_requests: 30Mi
+traefik_cpu_limit: 200m
+traefik_mem_limit: 30Mi
+traefik_cpu_requests: 100m
+traefik_mem_requests: 20Mi
 # default edge router is the first node who isn't a master (second kube-node)
 # edit traefik_edge_router_nodes list to deploy other nodes as edge-router (specified by nodename)
 traefik_edge_router_nodes:
