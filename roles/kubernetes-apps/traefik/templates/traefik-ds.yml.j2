@@ -43,15 +43,15 @@ spec:
           privileged: true
         args:
         - -d
-        #- --api
         - --kubernetes
         - --web
         - --configfile=/config/traefik.toml
+        #- --api
         volumeMounts:
-        - name: config-volume
-          mountPath: /config
-        - name: acme-volume
-          mountPath: /acme
+        - name: "config-volume"
+          mountPath: "/config"
+        - name: "acme-volume"
+          mountPath: "/acme"
       volumes:
       - name: config-volume
         configMap:
