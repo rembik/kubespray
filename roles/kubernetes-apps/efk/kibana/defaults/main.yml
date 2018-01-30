@@ -4,4 +4,7 @@ kibana_mem_limit: 0M
 kibana_cpu_requests: 100m
 kibana_mem_requests: 0M
 kibana_service_port: 5601
-kibana_base_url: "/api/v1/namespaces/{{ system_namespace }}/services/kibana-logging/proxy"
+# Internal usage:
+#kibana_base_url: "/api/v1/namespaces/{{ system_namespace }}/services/kibana-logging/proxy"
+# External usage:
+kibana_base_url: ""

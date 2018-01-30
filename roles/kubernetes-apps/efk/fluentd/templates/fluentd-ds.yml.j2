@@ -56,8 +56,9 @@ spec:
           readOnly: true
         - name: config-volume
           mountPath: /etc/fluent/config.d
-      nodeSelector:
-        beta.kubernetes.io/fluentd-ds-ready: "true"
+      # In order for Fluentd to work only on Kubernetes nodes who are labeled with 'beta.kubernetes.io/fluentd-ds-ready=true' uncomment the nodeSelector.
+      #nodeSelector:
+      #  beta.kubernetes.io/fluentd-ds-ready: "true"
       terminationGracePeriodSeconds: 30
       volumes:
       - name: varlog
